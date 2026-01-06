@@ -11,6 +11,6 @@ controladdin "D4P Bulk Login Control"
     event ControlReady();
     event PollToken(TenantId: Guid; DeviceCode: Text; ClientId: Guid);
 
-    procedure StartLoginProcess(TenantId: Guid; ClientId: Guid; UserCode: Text; VerificationUrl: Text; DeviceCode: Text);
+    procedure StartLoginProcess(TenantId: Guid; ClientId: Guid; UserCode: Text; VerificationUrl: Text; DeviceCode: Text; ExpiresIn: Integer);
     procedure StopPolling(TenantId: Guid);
 }
