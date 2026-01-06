@@ -86,7 +86,10 @@ function StartPollingInternal(tenantId, deviceCode, clientId, expiresIn) {
         // Update UI to show timeout message
         document.getElementById('status-message').innerText = 'Login timed out. The code has expired.';
         document.getElementById('login-btn').disabled = false;
-        document.getElementById('login-btn').querySelector('.ms-Button-label').innerText = 'Try Again';
+        var buttonLabel = document.getElementById('login-btn').querySelector('.ms-Button-label');
+        if (buttonLabel) {
+            buttonLabel.innerText = 'Try Again';
+        }
     }, expiresInMs);
 }
 
