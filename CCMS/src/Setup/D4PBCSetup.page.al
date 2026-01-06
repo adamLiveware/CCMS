@@ -21,6 +21,10 @@ page 62010 "D4P BC Setup"
                 {
                     ToolTip = 'Enable debug mode to display API response texts in messages for troubleshooting purposes.';
                 }
+                field("Enable Device Code Flow"; Rec."Enable Device Code Flow")
+                {
+                    ToolTip = 'Enable authentication via Device Code Flow as a fallback when Client Credentials flow is not available.';
+                }
             }
             group(Numbering)
             {
