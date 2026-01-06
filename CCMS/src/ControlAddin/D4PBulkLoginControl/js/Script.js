@@ -61,12 +61,7 @@ function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, device
 }
 
 function StartPollingInternal(tenantId, deviceCode, clientId, intervalSeconds, expiresInSeconds) {
-    if (pollIntervals[tenantId]) {
-        clearInterval(pollIntervals[tenantId]);
-    }
-    if (pollTimeouts[tenantId]) {
-        clearTimeout(pollTimeouts[tenantId]);
-    }
+    cleanupPolling(tenantId);
 
     // Use the interval from the server response (converted to milliseconds)
     var intervalMs = (intervalSeconds || 5) * 1000;
@@ -78,19 +73,13 @@ function StartPollingInternal(tenantId, deviceCode, clientId, intervalSeconds, e
     // Set timeout based on expires_in
     var expiresInMs = (expiresInSeconds || 900) * 1000;
     pollTimeouts[tenantId] = setTimeout(function() {
-        if (pollIntervals[tenantId]) {
-            clearInterval(pollIntervals[tenantId]);
-            delete pollIntervals[tenantId];
-        }
-        if (pollTimeouts[tenantId]) {
-            delete pollTimeouts[tenantId];
-        }
+        cleanupPolling(tenantId);
         document.getElementById('status-message').innerText = 'Login timeout - device code expired';
         document.getElementById('login-btn').disabled = false;
     }, expiresInMs);
 }
 
-function StopPolling(tenantId) {
+function cleanupPolling(tenantId) {
     if (pollIntervals[tenantId]) {
         clearInterval(pollIntervals[tenantId]);
         delete pollIntervals[tenantId];
@@ -99,6 +88,10 @@ function StopPolling(tenantId) {
         clearTimeout(pollTimeouts[tenantId]);
         delete pollTimeouts[tenantId];
     }
+}
+
+function StopPolling(tenantId) {
+    cleanupPolling(tenantId);
     document.getElementById('status-message').innerText = 'Login successful!';
     setTimeout(function() {
         document.getElementById('login-container').style.display = 'none';

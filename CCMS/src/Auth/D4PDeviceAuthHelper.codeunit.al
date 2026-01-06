@@ -11,6 +11,16 @@ codeunit 62040 "D4P Device Auth Helper"
         TokenUrlLbl: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true;
         ScopeLbl: Label 'https://api.businesscentral.dynamics.com/.default offline_access', Locked = true;
 
+    local procedure GetDefaultIntervalSeconds(): Integer
+    begin
+        exit(5);
+    end;
+
+    local procedure GetDefaultExpiresInSeconds(): Integer
+    begin
+        exit(900);
+    end;
+
     procedure RequestDeviceCode(TenantId: Guid; ClientId: Guid; ClientSecret: SecretText; var DeviceCode: Text; var UserCode: Text; var VerificationUrl: Text; var IntervalSeconds: Integer; var ExpiresInSeconds: Integer): Boolean
     var
         HttpClient: HttpClient;
@@ -51,15 +61,15 @@ codeunit 62040 "D4P Device Auth Helper"
         if JsonObj.Get('interval', Token) then begin
             IntervalSeconds := Token.AsValue().AsInteger();
             if IntervalSeconds <= 0 then
-                IntervalSeconds := 5; // Use default if invalid value
+                IntervalSeconds := GetDefaultIntervalSeconds(); // Use default if invalid value
         end else
-            IntervalSeconds := 5; // Default to 5 seconds if not specified
+            IntervalSeconds := GetDefaultIntervalSeconds(); // Default to 5 seconds if not specified
         if JsonObj.Get('expires_in', Token) then begin
             ExpiresInSeconds := Token.AsValue().AsInteger();
             if ExpiresInSeconds <= 0 then
-                ExpiresInSeconds := 900; // Use default if invalid value
+                ExpiresInSeconds := GetDefaultExpiresInSeconds(); // Use default if invalid value
         end else
-            ExpiresInSeconds := 900; // Default to 15 minutes if not specified
+            ExpiresInSeconds := GetDefaultExpiresInSeconds(); // Default to 15 minutes if not specified
 
         exit(true);
     end;
