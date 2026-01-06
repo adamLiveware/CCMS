@@ -31,6 +31,11 @@ table 62009 "D4P BC Setup"
             TableRelation = "No. Series";
             ToolTip = 'Specifies the number series used to assign customer numbers automatically.';
         }
+        field(6; "Enable Device Code Flow"; Boolean)
+        {
+            Caption = 'Enable Device Code Flow';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys

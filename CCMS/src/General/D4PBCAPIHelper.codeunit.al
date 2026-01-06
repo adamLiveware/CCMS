@@ -3,6 +3,7 @@ namespace D4P.CCMS.General;
 using System.Security.Authentication;
 using D4P.CCMS.Tenant;
 using D4P.CCMS.Setup;
+using D4P.CCMS.Auth;
 
 codeunit 62049 "D4P BC API Helper"
 {
@@ -102,12 +103,35 @@ codeunit 62049 "D4P BC API Helper"
     procedure GetOAuthToken(var BCTenant: Record "D4P BC Tenant") AuthToken: SecretText
     var
         OAuth2: Codeunit OAuth2;
+        BCSetup: Record "D4P BC Setup";
+        AuthHelper: Codeunit "D4P Device Auth Helper";
         FailedToGetTokenErr: Label 'Failed to get access token from response\%1';
         Scopes: List of [Text];
         ClientSecret: SecretText;
+        RefreshToken: SecretText;
+        NewRefreshToken: SecretText;
         AccessTokenURL: Text;
         tenantID: Text;
+        TokenKey: Text;
     begin
+        BCSetup := BCSetup.GetSetup();
+
+        // Try Device Code Flow if enabled
+        if BCSetup."Enable Device Code Flow" then begin
+            TokenKey := 'DeviceRefresh_' + Format(BCTenant."Tenant ID");
+            if IsolatedStorage.Contains(TokenKey, DataScope::User) then begin
+                IsolatedStorage.Get(TokenKey, DataScope::User, RefreshToken);
+
+                if AuthHelper.RefreshAccessToken(BCTenant."Tenant ID", BCTenant."Client ID", BCTenant.GetClientSecret(), RefreshToken, AuthToken, NewRefreshToken) then begin
+                    // Update stored refresh token if changed
+                    if not NewRefreshToken.IsEmpty() then
+                        IsolatedStorage.Set(TokenKey, NewRefreshToken, DataScope::User);
+                    exit(AuthToken);
+                end;
+            end;
+        end;
+
+        // Fallback to Client Credentials Flow
         tenantID := BCTenant."Tenant ID".ToText().Replace('{', '');
         tenantID := tenantID.Replace('}', '');
         AccessTokenURL := 'https://login.microsoftonline.com/' + tenantID + '/oauth2/v2.0/token';

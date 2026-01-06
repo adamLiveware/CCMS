@@ -1,0 +1,34 @@
+#controlAddIn {
+    font-family: "Segoe UI", "Segoe WP", "Segoe UI WPC", Tahoma, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.ms-Button {
+    box-sizing: border-box;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    vertical-align: top;
+    padding: 0 16px;
+    min-width: 80px;
+    height: 32px;
+    background-color: #0078d4;
+    color: #fff;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 30px;
+}
+
+.ms-Button:hover {
+    background-color: #106ebe;
+}
+
+.ms-Button:disabled {
+    background-color: #f3f2f1;
+    color: #a19f9d;
+    cursor: default;
+}
