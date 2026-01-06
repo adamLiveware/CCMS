@@ -11,7 +11,7 @@ codeunit 62040 "D4P Device Auth Helper"
         TokenUrlLbl: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true;
         ScopeLbl: Label 'https://api.businesscentral.dynamics.com/.default offline_access', Locked = true;
 
-    procedure RequestDeviceCode(TenantId: Guid; ClientId: Guid; ClientSecret: SecretText; var DeviceCode: Text; var UserCode: Text; var VerificationUrl: Text): Boolean
+    procedure RequestDeviceCode(TenantId: Guid; ClientId: Guid; ClientSecret: SecretText; var DeviceCode: Text; var UserCode: Text; var VerificationUrl: Text; var IntervalSeconds: Integer; var ExpiresInSeconds: Integer): Boolean
     var
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
@@ -48,6 +48,14 @@ codeunit 62040 "D4P Device Auth Helper"
             UserCode := Token.AsValue().AsText();
         if JsonObj.Get('verification_uri', Token) then
             VerificationUrl := Token.AsValue().AsText();
+        if JsonObj.Get('interval', Token) then
+            IntervalSeconds := Token.AsValue().AsInteger()
+        else
+            IntervalSeconds := 5; // Default to 5 seconds if not specified
+        if JsonObj.Get('expires_in', Token) then
+            ExpiresInSeconds := Token.AsValue().AsInteger()
+        else
+            ExpiresInSeconds := 900; // Default to 15 minutes if not specified
 
         exit(true);
     end;

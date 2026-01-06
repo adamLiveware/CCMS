@@ -1,4 +1,5 @@
 var pollIntervals = {};
+var pollTimeouts = {};
 var currentLoginData = null;
 
 function InitializeControl() {
@@ -34,20 +35,22 @@ function InitializeControl() {
         document.getElementById('login-btn').disabled = true;
 
         // Start polling
-        StartPollingInternal(currentLoginData.tenantId, currentLoginData.deviceCode, currentLoginData.clientId);
+        StartPollingInternal(currentLoginData.tenantId, currentLoginData.deviceCode, currentLoginData.clientId, currentLoginData.intervalSeconds, currentLoginData.expiresInSeconds);
     });
 
     Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('ControlReady', []);
 }
 
-function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, deviceCode) {
+function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, deviceCode, intervalSeconds, expiresInSeconds) {
     // Store data
     currentLoginData = {
         tenantId: tenantId,
         clientId: clientId,
         userCode: userCode,
         verificationUrl: verificationUrl,
-        deviceCode: deviceCode
+        deviceCode: deviceCode,
+        intervalSeconds: intervalSeconds || 5,
+        expiresInSeconds: expiresInSeconds || 900
     };
 
     // Show UI
@@ -57,20 +60,38 @@ function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, device
     document.getElementById('status-message').innerText = '';
 }
 
-function StartPollingInternal(tenantId, deviceCode, clientId) {
+function StartPollingInternal(tenantId, deviceCode, clientId, intervalSeconds, expiresInSeconds) {
     if (pollIntervals[tenantId]) {
         clearInterval(pollIntervals[tenantId]);
     }
+    if (pollTimeouts[tenantId]) {
+        clearTimeout(pollTimeouts[tenantId]);
+    }
+
+    // Use the interval from the server response (converted to milliseconds)
+    var intervalMs = (intervalSeconds || 5) * 1000;
 
     pollIntervals[tenantId] = setInterval(function() {
         Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('PollToken', [tenantId, deviceCode, clientId]);
-    }, 5000);
+    }, intervalMs);
+
+    // Set timeout based on expires_in
+    var expiresInMs = (expiresInSeconds || 900) * 1000;
+    pollTimeouts[tenantId] = setTimeout(function() {
+        StopPolling(tenantId);
+        document.getElementById('status-message').innerText = 'Login timeout - device code expired';
+        document.getElementById('login-btn').disabled = false;
+    }, expiresInMs);
 }
 
 function StopPolling(tenantId) {
     if (pollIntervals[tenantId]) {
         clearInterval(pollIntervals[tenantId]);
         delete pollIntervals[tenantId];
+    }
+    if (pollTimeouts[tenantId]) {
+        clearTimeout(pollTimeouts[tenantId]);
+        delete pollTimeouts[tenantId];
     }
     document.getElementById('status-message').innerText = 'Login successful!';
     setTimeout(function() {

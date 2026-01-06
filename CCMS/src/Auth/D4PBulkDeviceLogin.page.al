@@ -115,14 +115,16 @@ page 62041 "D4P Bulk Device Login"
                     DeviceCode: Text;
                     UserCode: Text;
                     VerificationUrl: Text;
+                    IntervalSeconds: Integer;
+                    ExpiresInSeconds: Integer;
                     ControlNotReadyErr: Label 'The login control is not ready yet. Please try again in a moment.';
                     RequestFailedErr: Label 'Failed to request device code for tenant %1', Comment = '%1 = Tenant Name';
                 begin
                     if not ControlReady then
                         Error(ControlNotReadyErr);
 
-                    if AuthHelper.RequestDeviceCode(Rec."Tenant ID", Rec."Client ID", Rec.GetClientSecret(), DeviceCode, UserCode, VerificationUrl) then begin
-                        CurrPage.BulkLoginControl.StartLoginProcess(Rec."Tenant ID", Rec."Client ID", UserCode, VerificationUrl, DeviceCode);
+                    if AuthHelper.RequestDeviceCode(Rec."Tenant ID", Rec."Client ID", Rec.GetClientSecret(), DeviceCode, UserCode, VerificationUrl, IntervalSeconds, ExpiresInSeconds) then begin
+                        CurrPage.BulkLoginControl.StartLoginProcess(Rec."Tenant ID", Rec."Client ID", UserCode, VerificationUrl, DeviceCode, IntervalSeconds, ExpiresInSeconds);
                     end else begin
                         Error(RequestFailedErr, Rec."Tenant Name");
                     end;
