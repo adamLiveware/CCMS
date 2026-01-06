@@ -34,20 +34,21 @@ function InitializeControl() {
         document.getElementById('login-btn').disabled = true;
 
         // Start polling
-        StartPollingInternal(currentLoginData.tenantId, currentLoginData.deviceCode, currentLoginData.clientId);
+        StartPollingInternal(currentLoginData.tenantId, currentLoginData.deviceCode, currentLoginData.clientId, currentLoginData.interval);
     });
 
     Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('ControlReady', []);
 }
 
-function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, deviceCode) {
+function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, deviceCode, interval) {
     // Store data
     currentLoginData = {
         tenantId: tenantId,
         clientId: clientId,
         userCode: userCode,
         verificationUrl: verificationUrl,
-        deviceCode: deviceCode
+        deviceCode: deviceCode,
+        interval: interval || 5
     };
 
     // Show UI
@@ -57,14 +58,17 @@ function StartLoginProcess(tenantId, clientId, userCode, verificationUrl, device
     document.getElementById('status-message').innerText = '';
 }
 
-function StartPollingInternal(tenantId, deviceCode, clientId) {
+function StartPollingInternal(tenantId, deviceCode, clientId, interval) {
     if (pollIntervals[tenantId]) {
         clearInterval(pollIntervals[tenantId]);
     }
 
+    // Ensure minimum interval of 5 seconds
+    var pollIntervalMs = Math.max(interval, 5) * 1000;
+
     pollIntervals[tenantId] = setInterval(function() {
         Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('PollToken', [tenantId, deviceCode, clientId]);
-    }, 5000);
+    }, pollIntervalMs);
 }
 
 function StopPolling(tenantId) {
