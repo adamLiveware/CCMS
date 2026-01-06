@@ -32,6 +32,7 @@ page 62041 "D4P Bulk Device Login"
                     AuthHelper: Codeunit "D4P Device Auth Helper";
                     AccessToken: SecretText;
                     RefreshToken: SecretText;
+                    LoginSuccessMsg: Label 'Login successful for tenant %1', Comment = '%1 = Tenant Name';
                 begin
                     Tenant.SetRange("Tenant ID", TenantId);
                     if not Tenant.FindFirst() then
@@ -49,10 +50,7 @@ page 62041 "D4P Bulk Device Login"
                         // Stop polling in JS
                         CurrPage.BulkLoginControl.StopPolling(TenantId);
 
-                        // Show success (maybe update a variable on the line? we can't modify Rec here easily if iterate)
-                        // But we can show a message or update a tracking table.
-                        // Since this is a list page, visual feedback is tricky without refreshing.
-                        Message('Login successful for tenant %1', Tenant."Tenant Name");
+                        Message(LoginSuccessMsg, Tenant."Tenant Name");
                     end;
                 end;
             }
@@ -63,22 +61,26 @@ page 62041 "D4P Bulk Device Login"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    ToolTip = 'Specifies the customer number.';
                 }
                 field("Tenant ID"; Rec."Tenant ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    ToolTip = 'Specifies the tenant ID.';
                 }
                 field("Tenant Name"; Rec."Tenant Name")
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    ToolTip = 'Specifies the tenant name.';
                 }
                 field(HasToken; HasStoredToken(Rec."Tenant ID"))
                 {
                     ApplicationArea = All;
                     Caption = 'Has Token';
                     Editable = false;
+                    ToolTip = 'Specifies whether a device code flow token is stored for this tenant.';
                 }
             }
         }
@@ -96,6 +98,7 @@ page 62041 "D4P Bulk Device Login"
                 Promoted = true;
                 PromotedCategory = Process;
                 Scope = Repeater;
+                ToolTip = 'Starts the device code login flow for the selected tenant.';
 
                 trigger OnAction()
                 var
@@ -103,14 +106,16 @@ page 62041 "D4P Bulk Device Login"
                     DeviceCode: Text;
                     UserCode: Text;
                     VerificationUrl: Text;
+                    ControlNotReadyErr: Label 'The login control is not ready yet. Please try again in a moment.';
+                    RequestFailedErr: Label 'Failed to request device code for tenant %1', Comment = '%1 = Tenant Name';
                 begin
                     if not ControlReady then
-                        Error('Control not ready.');
+                        Error(ControlNotReadyErr);
 
                     if AuthHelper.RequestDeviceCode(Rec."Tenant ID", Rec."Client ID", Rec.GetClientSecret(), DeviceCode, UserCode, VerificationUrl) then begin
                         CurrPage.BulkLoginControl.StartLoginProcess(Rec."Tenant ID", Rec."Client ID", UserCode, VerificationUrl, DeviceCode);
                     end else begin
-                        Error('Failed to request device code for tenant %1', Rec."Tenant Name");
+                        Error(RequestFailedErr, Rec."Tenant Name");
                     end;
                 end;
             }
@@ -120,6 +125,7 @@ page 62041 "D4P Bulk Device Login"
                 ApplicationArea = All;
                 Caption = 'Clear Token';
                 Image = Delete;
+                ToolTip = 'Clears the stored device code flow token for the selected tenant.';
 
                 trigger OnAction()
                 begin

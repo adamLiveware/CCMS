@@ -16,6 +16,7 @@ codeunit 62040 "D4P Device Auth Helper"
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         Content: HttpContent;
+        Headers: HttpHeaders;
         ResponseText: Text;
         Url: Text;
         JsonObj: JsonObject;
@@ -27,8 +28,9 @@ codeunit 62040 "D4P Device Auth Helper"
         Url := StrSubstNo(DeviceCodeUrlLbl, TenantIdText);
 
         Content.WriteFrom(StrSubstNo('client_id=%1&scope=%2', Format(ClientId), ScopeLbl));
-        Content.GetHeaders(nil).Remove('Content-Type');
-        Content.GetHeaders(nil).Add('Content-Type', 'application/x-www-form-urlencoded');
+        Content.GetHeaders(Headers);
+        Headers.Remove('Content-Type');
+        Headers.Add('Content-Type', 'application/x-www-form-urlencoded');
 
         if not HttpClient.Post(Url, Content, HttpResponse) then
             exit(false);
@@ -40,12 +42,12 @@ codeunit 62040 "D4P Device Auth Helper"
         if not JsonObj.ReadFrom(ResponseText) then
             exit(false);
 
-        JsonObj.Get('device_code', Token);
-        DeviceCode := Token.AsValue().AsText();
-        JsonObj.Get('user_code', Token);
-        UserCode := Token.AsValue().AsText();
-        JsonObj.Get('verification_uri', Token);
-        VerificationUrl := Token.AsValue().AsText();
+        if JsonObj.Get('device_code', Token) then
+            DeviceCode := Token.AsValue().AsText();
+        if JsonObj.Get('user_code', Token) then
+            UserCode := Token.AsValue().AsText();
+        if JsonObj.Get('verification_uri', Token) then
+            VerificationUrl := Token.AsValue().AsText();
 
         exit(true);
     end;
@@ -55,6 +57,7 @@ codeunit 62040 "D4P Device Auth Helper"
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         Content: HttpContent;
+        Headers: HttpHeaders;
         ResponseText: Text;
         Url: Text;
         JsonObj: JsonObject;
@@ -76,8 +79,9 @@ codeunit 62040 "D4P Device Auth Helper"
         end;
 
         Content.WriteFrom(Body);
-        Content.GetHeaders(nil).Remove('Content-Type');
-        Content.GetHeaders(nil).Add('Content-Type', 'application/x-www-form-urlencoded');
+        Content.GetHeaders(Headers);
+        Headers.Remove('Content-Type');
+        Headers.Add('Content-Type', 'application/x-www-form-urlencoded');
 
         if not HttpClient.Post(Url, Content, HttpResponse) then
             exit(false);
@@ -108,6 +112,7 @@ codeunit 62040 "D4P Device Auth Helper"
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         Content: HttpContent;
+        Headers: HttpHeaders;
         ResponseText: Text;
         Url: Text;
         JsonObj: JsonObject;
@@ -130,8 +135,9 @@ codeunit 62040 "D4P Device Auth Helper"
         end;
 
         Content.WriteFrom(Body);
-        Content.GetHeaders(nil).Remove('Content-Type');
-        Content.GetHeaders(nil).Add('Content-Type', 'application/x-www-form-urlencoded');
+        Content.GetHeaders(Headers);
+        Headers.Remove('Content-Type');
+        Headers.Add('Content-Type', 'application/x-www-form-urlencoded');
 
         if not HttpClient.Post(Url, Content, HttpResponse) then
             exit(false);
