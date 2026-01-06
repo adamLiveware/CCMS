@@ -78,7 +78,13 @@ function StartPollingInternal(tenantId, deviceCode, clientId, intervalSeconds, e
     // Set timeout based on expires_in
     var expiresInMs = (expiresInSeconds || 900) * 1000;
     pollTimeouts[tenantId] = setTimeout(function() {
-        StopPolling(tenantId);
+        if (pollIntervals[tenantId]) {
+            clearInterval(pollIntervals[tenantId]);
+            delete pollIntervals[tenantId];
+        }
+        if (pollTimeouts[tenantId]) {
+            delete pollTimeouts[tenantId];
+        }
         document.getElementById('status-message').innerText = 'Login timeout - device code expired';
         document.getElementById('login-btn').disabled = false;
     }, expiresInMs);
