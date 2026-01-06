@@ -32,7 +32,9 @@ page 62041 "D4P Bulk Device Login"
                     AuthHelper: Codeunit "D4P Device Auth Helper";
                     AccessToken: SecretText;
                     RefreshToken: SecretText;
+                    ErrorMessage: Text;
                     LoginSuccessMsg: Label 'Login successful for tenant %1', Comment = '%1 = Tenant Name';
+                    LoginFailedMsg: Label 'Login failed for tenant %1. Error: %2', Comment = '%1 = Tenant Name, %2 = Error Message';
                 begin
                     Tenant.SetRange("Tenant ID", TenantId);
                     if not Tenant.FindFirst() then
@@ -43,7 +45,7 @@ page 62041 "D4P Bulk Device Login"
                         ClientId := Tenant."Client ID";
 
                     // Try to poll
-                    if AuthHelper.PollForToken(TenantId, ClientId, Tenant.GetClientSecret(), DeviceCode, AccessToken, RefreshToken) then begin
+                    if AuthHelper.PollForToken(TenantId, ClientId, Tenant.GetClientSecret(), DeviceCode, AccessToken, RefreshToken, ErrorMessage) then begin
                         // Success! Save tokens
                         SaveRefreshToken(TenantId, RefreshToken);
 
@@ -51,6 +53,13 @@ page 62041 "D4P Bulk Device Login"
                         CurrPage.BulkLoginControl.StopPolling(TenantId);
 
                         Message(LoginSuccessMsg, Tenant."Tenant Name");
+                    end else begin
+                        if ErrorMessage <> '' then begin
+                            // Fatal Error
+                            CurrPage.BulkLoginControl.StopPolling(TenantId);
+                            Message(LoginFailedMsg, Tenant."Tenant Name", ErrorMessage);
+                        end;
+                        // If ErrorMessage is empty, it means 'authorization_pending', so we do nothing and keep polling.
                     end;
                 end;
             }

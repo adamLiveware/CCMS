@@ -52,7 +52,7 @@ codeunit 62040 "D4P Device Auth Helper"
         exit(true);
     end;
 
-    procedure PollForToken(TenantId: Guid; ClientId: Guid; ClientSecret: SecretText; DeviceCode: Text; var AccessToken: SecretText; var RefreshToken: SecretText): Boolean
+    procedure PollForToken(TenantId: Guid; ClientId: Guid; ClientSecret: SecretText; DeviceCode: Text; var AccessToken: SecretText; var RefreshToken: SecretText; var ErrorMessage: Text): Boolean
     var
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
@@ -94,7 +94,12 @@ codeunit 62040 "D4P Device Auth Helper"
             JsonObj.Get('error', Token);
             if Token.AsValue().AsText() = 'authorization_pending' then
                 exit(false); // Still waiting
+
             // Other errors are fatal
+            ErrorMessage := Token.AsValue().AsText();
+            if JsonObj.Get('error_description', Token) then
+                ErrorMessage += ': ' + Token.AsValue().AsText();
+
             exit(false);
         end;
 
