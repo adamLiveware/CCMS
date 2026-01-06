@@ -48,13 +48,17 @@ codeunit 62040 "D4P Device Auth Helper"
             UserCode := Token.AsValue().AsText();
         if JsonObj.Get('verification_uri', Token) then
             VerificationUrl := Token.AsValue().AsText();
-        if JsonObj.Get('interval', Token) then
+        if JsonObj.Get('interval', Token) then begin
             IntervalSeconds := Token.AsValue().AsInteger();
-        else
+            if IntervalSeconds <= 0 then
+                IntervalSeconds := 5; // Use default if invalid value
+        end else
             IntervalSeconds := 5; // Default to 5 seconds if not specified
-        if JsonObj.Get('expires_in', Token) then
+        if JsonObj.Get('expires_in', Token) then begin
             ExpiresInSeconds := Token.AsValue().AsInteger();
-        else
+            if ExpiresInSeconds <= 0 then
+                ExpiresInSeconds := 900; // Use default if invalid value
+        end else
             ExpiresInSeconds := 900; // Default to 15 minutes if not specified
 
         exit(true);
